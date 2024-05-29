@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Text Extractor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Text Extractor</h1>
+        <h2>Doctor's prescription, notes, office work, etc.</h2>
+        <h3>Upload the image file, and see the magic (Jpeg, png, etc.).</h3>
+
+        <form action="/" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" id="file" onchange="uploadFile()">
+            <progress id="progressBar" value="0" max="100" style="width:300px;"></progress>
+            <input type="submit" value="Upload">
+        </form>
+
+        <textarea id="output" rows="10" cols="50">{{ extracted_text if extracted_text else "" }}</textarea>
+    </div>
+
+    <script>
+        function uploadFile() {
+            var file = document.getElementById("file").files[0];
+            var formdata = new FormData();
+            formdata.append("file", file);
+            var ajax = new XMLHttpRequest();
+            ajax.upload.addEventListener("progress", progressHandler, false);
+            ajax.open("POST", "/");
+            ajax.send(formdata);
+        }
+
+        function progressHandler(event) {
+            var percent = (event.loaded / event.total) * 100;
+            document.getElementById("progressBar").value = Math.round(percent);
+        }
+    </script>
+</body>
+</html>

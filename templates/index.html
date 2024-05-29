@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Text Extractor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Text Extractor</h1>
+        <h2>Doctor's prescription, notes, office work, etc.</h2>
+        <h3>Upload the image file, and see the magic (Jpeg, png, etc.).</h3>
+
+        <form id="upload-form" action="/" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" id="file" required>
+            <progress id="progressBar" value="0" max="100" style="width:300px;"></progress>
+            <input type="submit" value="Generate">
+        </form>
+
+        <textarea id="output" rows="10" cols="50">{{ extracted_text if extracted_text else "" }}</textarea>
+    </div>
+
+    <script>
+        document.getElementById("upload-form").onsubmit = function(event) {
+            var fileInput = document.getElementById("file");
+            if (!fileInput.files.length) {
+                alert("Please select a file first.");
+                return;
+            }
+
+            var file = fileInput.files[0];
+            var formData = new FormData();
+            formData.append("file", file);
+
+            var xhr = new XMLHttpRequest();
+            xhr.upload.addEventListener("progress", function(e) {
+                if (e.lengthComputable) {
+                    var percentComplete = (e.loaded / e.total) * 100;
+                    document.getElementById("progressBar").value = percentComplete;
+                }
+            }, false);
+
+            xhr.open("POST", "/", true);
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    // Update the textarea with the extracted text from the response
+                    var parser = new DOMParser();
+                    var doc = parser.parseFromString(xhr.responseText, 'text/html');
+                    var extractedText = doc.querySelector('#output').textContent;
+                    document.getElementById("output").value = extractedText;
+                } else {
+                    alert("An error occurred during the upload. Please try again.");
+                }
+            };
+
+            xhr.send(formData);
+            event.preventDefault(); // Prevent the default form submission
+        };
+    </script>
+</body>
+</html>
